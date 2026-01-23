@@ -1,4 +1,4 @@
-Stellar Burgers Project
+**Stellar Burgers Project**
 Проект автоматизации тестирования веб-приложения Stellar Burgers, включающий UI-тесты и unit-тесты для логики бургера.
 
 🛠 Технологии
