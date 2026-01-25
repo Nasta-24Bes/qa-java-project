@@ -27,17 +27,19 @@ public class BurgerEdgeCasesTest {
     private Ingredient mockIngredient;
 
     private final float bunPrice;
+    private final String testCaseName;
 
-    public BurgerEdgeCasesTest(float bunPrice) {
+    public BurgerEdgeCasesTest(String testCaseName, float bunPrice) {
+        this.testCaseName = testCaseName;
         this.bunPrice = bunPrice;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {0.0f},     // Бесплатная булочка
-                {1.5f},     // Дробная цена
-                {1000.0f}   // Высокая цена
+                {"Бесплатная булочка", 0.0f},
+                {"Булочка с дробной ценой", 1.5f},
+                {"Булочка с высокой ценой", 1000.0f}
         });
     }
 
@@ -74,17 +76,23 @@ public class BurgerEdgeCasesTest {
     @Test
     public void testMultipleAddAndRemoveOperations() {
         burger.setBuns(mockBun);
-        burger.addIngredient(mockIngredient);
-        burger.addIngredient(mockIngredient);
-        burger.addIngredient(mockIngredient);
 
-        assertEquals("Должно быть 3 ингредиента", 3, burger.ingredients.size());
+        int numberOfIngredientsToAdd = 3;
+        for (int i = 0; i < numberOfIngredientsToAdd; i++) {
+            burger.addIngredient(mockIngredient);
+        }
 
-        burger.removeIngredient(1);
+        assertEquals("Должно быть " + numberOfIngredientsToAdd + " ингредиента",
+                numberOfIngredientsToAdd, burger.ingredients.size());
 
-        assertEquals("После удаления должно остаться 2 ингредиента", 2, burger.ingredients.size());
+        int indexToRemove = 1;
+        burger.removeIngredient(indexToRemove);
 
-        float expectedPrice = (bunPrice * 2) + (10.0f * 2);
+        int expectedIngredientsAfterRemoval = numberOfIngredientsToAdd - 1;
+        assertEquals("После удаления должно остаться " + expectedIngredientsAfterRemoval + " ингредиента",
+                expectedIngredientsAfterRemoval, burger.ingredients.size());
+
+        float expectedPrice = (bunPrice * 2) + (10.0f * expectedIngredientsAfterRemoval);
         float actualPrice = burger.getPrice();
 
         assertEquals("Цена после удаления ингредиента", expectedPrice, actualPrice, 0.001f);
@@ -93,13 +101,15 @@ public class BurgerEdgeCasesTest {
     @Test(expected = IndexOutOfBoundsException.class)
     public void testRemoveIngredientInvalidIndex() {
         burger.addIngredient(mockIngredient);
-        burger.removeIngredient(5); // Неверный индекс
+        int invalidIndex = 5;
+        burger.removeIngredient(invalidIndex); // Неверный индекс
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void testMoveIngredientInvalidIndex() {
         burger.addIngredient(mockIngredient);
-        burger.moveIngredient(0, 5); // Неверный индекс
+        int invalidNewIndex = 5;
+        burger.moveIngredient(0, invalidNewIndex); // Неверный индекс
     }
 
     @Test
@@ -109,11 +119,17 @@ public class BurgerEdgeCasesTest {
         String receipt = burger.getReceipt();
 
         assertNotNull("Чек пустого бургера не должен быть null", receipt);
-        assertTrue("Чек должен содержать название булочки", receipt.contains("test bun"));
-        assertTrue("Чек должен содержать цену", receipt.contains("Price:"));
 
-        // Проверяем, что нет строк с ингредиентами
+        // Проверка формата чека целиком
         String[] lines = receipt.split("\n");
-        assertEquals("Чек пустого бургера должен иметь определенное количество строк", 4, lines.length);
+
+        assertEquals("Чек пустого бургера должен иметь 4 строки", 4, lines.length);
+        assertEquals("Первая строка должна быть в правильном формате",
+                "(==== test bun ====)", lines[0].trim());
+        assertEquals("Вторая строка должна быть в правильном формате",
+                "(==== test bun ====)", lines[1].trim());
+        assertTrue("Третья строка должна быть пустой", lines[2].trim().isEmpty());
+        assertEquals("Четвертая строка должна содержать цену",
+                String.format("Price: %f", bunPrice * 2), lines[3].trim());
     }
 }
