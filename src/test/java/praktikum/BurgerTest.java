@@ -24,13 +24,13 @@ public class BurgerTest {
     private Bun mockBun;
 
     @Mock
-    private Ingredient mockIngredient1;
+    private Ingredient mockIngredientSauce;
 
     @Mock
-    private Ingredient mockIngredient2;
+    private Ingredient mockIngredientFilling;
 
     @Mock
-    private Ingredient mockIngredient3;
+    private Ingredient mockIngredientSauceSecond;
 
     private final String bunName;
     private final float bunPrice;
@@ -40,7 +40,7 @@ public class BurgerTest {
         this.bunPrice = bunPrice;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Булочка: {0}, Цена: {1}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                 {"black bun", 100.0f},
@@ -57,17 +57,17 @@ public class BurgerTest {
         when(mockBun.getName()).thenReturn(bunName);
         when(mockBun.getPrice()).thenReturn(bunPrice);
 
-        when(mockIngredient1.getName()).thenReturn("hot sauce");
-        when(mockIngredient1.getType()).thenReturn(IngredientType.SAUCE);
-        when(mockIngredient1.getPrice()).thenReturn(50.0f);
+        when(mockIngredientSauce.getName()).thenReturn("hot sauce");
+        when(mockIngredientSauce.getType()).thenReturn(IngredientType.SAUCE);
+        when(mockIngredientSauce.getPrice()).thenReturn(50.0f);
 
-        when(mockIngredient2.getName()).thenReturn("cutlet");
-        when(mockIngredient2.getType()).thenReturn(IngredientType.FILLING);
-        when(mockIngredient2.getPrice()).thenReturn(100.0f);
+        when(mockIngredientFilling.getName()).thenReturn("cutlet");
+        when(mockIngredientFilling.getType()).thenReturn(IngredientType.FILLING);
+        when(mockIngredientFilling.getPrice()).thenReturn(100.0f);
 
-        when(mockIngredient3.getName()).thenReturn("sour cream");
-        when(mockIngredient3.getType()).thenReturn(IngredientType.SAUCE);
-        when(mockIngredient3.getPrice()).thenReturn(30.0f);
+        when(mockIngredientSauceSecond.getName()).thenReturn("sour cream");
+        when(mockIngredientSauceSecond.getType()).thenReturn(IngredientType.SAUCE);
+        when(mockIngredientSauceSecond.getPrice()).thenReturn(30.0f);
     }
 
     @After
@@ -85,41 +85,41 @@ public class BurgerTest {
 
     @Test
     public void testAddIngredient() {
-        burger.addIngredient(mockIngredient1);
+        burger.addIngredient(mockIngredientSauce);
 
         assertEquals("Должен быть добавлен 1 ингредиент", 1, burger.ingredients.size());
-        assertSame("Добавленный ингредиент должен соответствовать", mockIngredient1, burger.ingredients.get(0));
+        assertSame("Добавленный ингредиент должен соответствовать", mockIngredientSauce, burger.ingredients.get(0));
     }
 
     @Test
     public void testRemoveIngredient() {
-        burger.addIngredient(mockIngredient1);
-        burger.addIngredient(mockIngredient2);
+        burger.addIngredient(mockIngredientSauce);
+        burger.addIngredient(mockIngredientFilling);
 
         burger.removeIngredient(0);
 
         assertEquals("После удаления должен остаться 1 ингредиент", 1, burger.ingredients.size());
-        assertSame("Оставшийся ингредиент должен быть вторым", mockIngredient2, burger.ingredients.get(0));
+        assertSame("Оставшийся ингредиент должен быть вторым", mockIngredientFilling, burger.ingredients.get(0));
     }
 
     @Test
     public void testMoveIngredient() {
-        burger.addIngredient(mockIngredient1);
-        burger.addIngredient(mockIngredient2);
-        burger.addIngredient(mockIngredient3);
+        burger.addIngredient(mockIngredientSauce);
+        burger.addIngredient(mockIngredientFilling);
+        burger.addIngredient(mockIngredientSauceSecond);
         burger.moveIngredient(0, 2);
 
         assertEquals("Количество ингредиентов не должно измениться", 3, burger.ingredients.size());
-        assertSame("На позиции 0 теперь должен быть второй ингредиент", mockIngredient2, burger.ingredients.get(0));
-        assertSame("На позиции 1 теперь должен быть третий ингредиент", mockIngredient3, burger.ingredients.get(1));
-        assertSame("На позиции 2 теперь должен быть первый ингредиент", mockIngredient1, burger.ingredients.get(2));
+        assertSame("На позиции 0 теперь должен быть второй ингредиент", mockIngredientFilling, burger.ingredients.get(0));
+        assertSame("На позиции 1 теперь должен быть третий ингредиент", mockIngredientSauceSecond, burger.ingredients.get(1));
+        assertSame("На позиции 2 теперь должен быть первый ингредиент", mockIngredientSauce, burger.ingredients.get(2));
     }
 
     @Test
     public void testGetPriceWithBunAndIngredients() {
         burger.setBuns(mockBun);
-        burger.addIngredient(mockIngredient1);
-        burger.addIngredient(mockIngredient2);
+        burger.addIngredient(mockIngredientSauce);
+        burger.addIngredient(mockIngredientFilling);
 
         float expectedPrice = (bunPrice * 2) + 50.0f + 100.0f;
         float actualPrice = burger.getPrice();
@@ -141,8 +141,8 @@ public class BurgerTest {
     @Test
     public void testGetReceipt() {
         burger.setBuns(mockBun);
-        burger.addIngredient(mockIngredient1);
-        burger.addIngredient(mockIngredient2);
+        burger.addIngredient(mockIngredientSauce);
+        burger.addIngredient(mockIngredientFilling);
 
         String receipt = burger.getReceipt();
 
@@ -158,31 +158,32 @@ public class BurgerTest {
     @Test
     public void testGetReceiptFormat() {
         burger.setBuns(mockBun);
-        burger.addIngredient(mockIngredient1);
+        burger.addIngredient(mockIngredientSauce);
 
         String receipt = burger.getReceipt();
         String[] lines = receipt.split("\n");
 
-        assertTrue("Первая строка должна содержать название булочки в скобках",
-                lines[0].contains("(==== " + bunName + " ====)"));
-        assertTrue("Вторая строка должна содержать ингредиент",
-                lines[1].contains("= sauce hot sauce ="));
-        assertTrue("Третья строка должна содержать название булочки в скобках",
-                lines[2].contains("(==== " + bunName + " ====)"));
-        assertTrue("Последняя строка должна содержать цену",
-                lines[lines.length - 1].contains("Price:"));
+        // Проверка формата строк целиком
+        assertEquals("Первая строка должна быть в правильном формате",
+                String.format("(==== %s ====)", bunName), lines[0].trim());
+        assertEquals("Вторая строка должна быть в правильном формате",
+                "= sauce hot sauce =", lines[1].trim());
+        assertEquals("Третья строка должна быть в правильном формате",
+                String.format("(==== %s ====)", bunName), lines[2].trim());
+        assertEquals("Четвертая строка должна содержать цену",
+                String.format("Price: %f", (bunPrice * 2) + 50.0f), lines[3].trim());
     }
 
     @Test
     public void testIngredientOrderInReceipt() {
         burger.setBuns(mockBun);
-        burger.addIngredient(mockIngredient1);
-        burger.addIngredient(mockIngredient2);
+        burger.addIngredient(mockIngredientSauce);
+        burger.addIngredient(mockIngredientFilling);
 
         String receipt = burger.getReceipt();
 
-        int indexIngredient1 = receipt.indexOf("hot sauce");
-        int indexIngredient2 = receipt.indexOf("cutlet");
+        int indexIngredient1 = receipt.indexOf("= sauce hot sauce =");
+        int indexIngredient2 = receipt.indexOf("= filling cutlet =");
 
         assertTrue("Ингредиенты должны быть в том же порядке, в котором добавлялись",
                 indexIngredient1 < indexIngredient2);
